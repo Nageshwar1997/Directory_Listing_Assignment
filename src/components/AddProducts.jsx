@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ImCancelCircle } from "react-icons/im";
 import { FaAngleRight } from "react-icons/fa";
 import products from "../data/products";
+import SummaryApi from "../api/index.api";
 
 const AddProducts = ({ setShowAddProducts }) => {
   const [selectedProduct, setSelectedProduct] = useState(products.Pipes);
@@ -10,7 +11,15 @@ const AddProducts = ({ setShowAddProducts }) => {
   const [selectedGrades, setSelectedGrades] = useState({
     productName: "",
     material: "",
-    grades: [], // List of selected grades for the current material
+    grades: [],
+    price: "",
+    details: {
+      shape: "",
+      thickness: "",
+      surfaceFinish: "",
+      length: "",
+      outsideDiameter: "",
+    },
   });
 
   const handleProductClick = (product) => {
@@ -57,8 +66,24 @@ const AddProducts = ({ setShowAddProducts }) => {
       }
     });
   };
-  console.log("selectedGrades", selectedGrades);
-  console.log(process.env.REACT_APP_PORT);
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch(SummaryApi.addProduct.url, {
+        method: SummaryApi.addProduct.method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(selectedGrades),
+      });
+      const responseData = await response.json();
+
+      if (responseData.success) {
+        setShowAddProducts(false);
+      }
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
 
   return (
     <div className="absolute top-0 right-0 bottom-0 left-0 w-full h-full flex justify-center items-center backdrop-blur-sm">
@@ -140,21 +165,21 @@ const AddProducts = ({ setShowAddProducts }) => {
           </div>
           <div className="w-1/3 bg-white border rounded overflow-y-scroll px-1 scrollbar-stylish">
             {selectedMaterial && (
-              <div className="cursor-pointer">
+              <div>
                 {getGradesForMaterial(selectedMaterial).map((grade, index) => (
                   <div
-                    className="py-2 pl-1 shadow-sm bg-gray-100 my-2 flex justify-start gap-10 items-center"
+                    className="py-2 pl-1 shadow-sm bg-gray-100 my-2 flex justify-between items-center"
                     key={index + grade}
                   >
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4"
-                      checked={selectedGrades.grades.includes(grade)}
-                      onChange={() => handleGradeSelection(grade)}
-                    />
                     <p>
                       {selectedMaterial} {grade} {productName}
                     </p>
+                    <input
+                      className="w-4 h-4 mr-2 cursor-pointer"
+                      type="checkbox"
+                      checked={selectedGrades.grades.includes(grade)}
+                      onChange={() => handleGradeSelection(grade)}
+                    />
                   </div>
                 ))}
               </div>
@@ -162,7 +187,10 @@ const AddProducts = ({ setShowAddProducts }) => {
           </div>
         </div>
         <div className="w-full flex justify-center items-center mt-2">
-          <button className="text-white py-2 text-lg px-20 rounded-full bg-blue-500 shadow-lg hover:bg-blue-600 font-bold transition-all">
+          <button
+            onClick={handleSubmit}
+            className="text-white py-2 text-lg px-20 rounded-full bg-blue-500 shadow-lg hover:bg-blue-600 font-bold transition-all"
+          >
             Submit
           </button>
         </div>
