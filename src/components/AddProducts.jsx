@@ -1,16 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ImCancelCircle } from "react-icons/im";
 import { FaAngleRight } from "react-icons/fa";
 import products from "../data/products";
 import SummaryApi from "../api/index.api";
 
 const AddProducts = ({ setShowAddProducts }) => {
-  const [selectedProduct, setSelectedProduct] = useState(products.Pipes);
-  const [selectedMaterial, setSelectedMaterial] = useState("Aluminum");
-  const [productName, setProductName] = useState("Pipes");
+  const initialProductName = Object.keys(products)[0]; // Get the first product
+  const initialMaterial = Object.keys(products[initialProductName])[0]; // Get the default material for the first product
+
+  const [selectedProduct, setSelectedProduct] = useState(
+    products[initialProductName]
+  );
+  const [selectedMaterial, setSelectedMaterial] = useState(initialMaterial);
+  const [productName, setProductName] = useState(initialProductName);
   const [selectedGrades, setSelectedGrades] = useState({
-    productName: "",
-    material: "",
+    productName: initialProductName,
+    material: initialMaterial,
     grades: [],
     price: "",
     details: {
@@ -21,6 +26,17 @@ const AddProducts = ({ setShowAddProducts }) => {
       outsideDiameter: "",
     },
   });
+
+  useEffect(() => {
+    // Set initial state when the component mounts
+    setSelectedProduct(products[initialProductName]);
+    setSelectedMaterial(initialMaterial);
+    setSelectedGrades({
+      productName: initialProductName,
+      material: initialMaterial,
+      grades: [], // Initialize with empty grades
+    });
+  }, [initialProductName, initialMaterial]);
 
   const handleProductClick = (product) => {
     setSelectedProduct(products[product]);
@@ -66,6 +82,7 @@ const AddProducts = ({ setShowAddProducts }) => {
       }
     });
   };
+
   const handleSubmit = async () => {
     try {
       const response = await fetch(SummaryApi.addProduct.url, {
@@ -84,7 +101,7 @@ const AddProducts = ({ setShowAddProducts }) => {
       console.log("error", error);
     }
   };
-
+  
   return (
     <div className="absolute top-0 right-0 bottom-0 left-0 w-full h-full flex justify-center items-center backdrop-blur-sm">
       <div className="max-w-4xl w-full max-h-[90vh] h-full rounded-md shadow-md bg-white py-2 px-4">
